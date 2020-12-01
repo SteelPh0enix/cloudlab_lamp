@@ -1,0 +1,70 @@
+version: '3.2'
+
+services: 
+  apache:
+    build:
+      context: './httpd_build/'
+    container_name: apache
+
+    volumes:
+      - ./DocumentRoot/:/var/www/html/
+
+    ports: 
+      - "6666:80"
+
+    networks:
+      - front
+      - back
+
+    depends_on: 
+      - mysql
+      - php
+
+    restart: unless-stopped
+
+  mysql:
+    build: 
+      context: './mysql_build/'
+    container_name: mysql
+
+    environment: 
+      MYSQL_ROOT_PASSWORD: "rootpwd"
+      MYSQL_USER: "testuser"
+      MYSQL_PASSWORD: "testpwd"
+      MYSQL_DATABASE: "testdb"
+      MYSQL_ALLOW_EMPTY_PASSWORD: "no"
+      TZ: "Europe/Warsaw"
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - data:/var/lib/mysql
+
+    networks:
+      - back
+
+    restart: always
+    
+  php:
+    build: 
+      context: './php_build/'
+    container_name: php
+
+    volumes:
+      - ./DocumentRoot/:/var/www/html/
+
+    networks:
+      - back
+
+    depends_on: 
+      - mysql
+
+    restart: unless-stopped
+
+networks:
+  front:
+  back:
+
+volumes:
+  data:
